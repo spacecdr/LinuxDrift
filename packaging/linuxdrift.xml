@@ -19,10 +19,10 @@
       <number id="lineLength" type="slider" arg="--set lineLength=%" _label="Lunghezza linee" low="1" high="1000" default="450" />
       <number id="lineWidth" type="slider" arg="--set lineWidth=%" _label="Larghezza linee" low="0.1" high="100" default="9" />
       <number id="lineBeginOffset" type="slider" arg="--set lineBeginOffset=%" _label="Inizio sfumatura" low="0" high="1" default="0.4" />
-      <number id="lineVariance" type="slider" arg="--set lineVariance=%" _label="Varianza" low="0" high="1" default="0.5" />
-      <number id="overallScale" type="slider" arg="--set overallScale=%" _label="Scala complessiva" low="0.1" high="10" default="1" />
     </vgroup>
     <vgroup>
+      <number id="lineVariance" type="slider" arg="--set lineVariance=%" _label="Varianza" low="0" high="1" default="0.5" />
+      <number id="overallScale" type="slider" arg="--set overallScale=%" _label="Scala complessiva" low="0.1" high="10" default="1" />
       <number id="noiseMultiplier" type="slider" arg="--set noiseMultiplier=%" _label="Intensita rumore" low="0" high="10" default="0.45" />
     </vgroup>
   </hgroup>
