@@ -13,9 +13,9 @@
 
 **Versione Linux ispirata al salvaschermo Drift / Deriva di macOS**, pronta da installare come salvaschermo.
 Basata su [Flux di Sander Melnikov](https://github.com/sandydoo/flux).
-Non è un port ufficiale Apple. Mostra solo l'animazione, senza slogan, controlli o informazioni sovrapposte.
+Non è un port ufficiale Apple. Mostra l'animazione senza slogan o controlli; dalla versione 1.1 è disponibile un orologio opzionale.
 Funziona **interamente offline**: nessun browser, server web, account o download a runtime.
-Le dieci palette originali e l'interfaccia di configurazione sono incorporate nel binario.
+Le dieci palette originali, il font Inter e l’interfaccia di configurazione sono incorporati nel binario.
 
 <table>
 <tr><td><img src="docs/assets/poolside.webp" alt="Palette Poolside, linee azzurre"></td><td><img src="docs/assets/plasma.webp" alt="Palette Plasma, linee arancioni e dorate"></td></tr>
@@ -48,7 +48,7 @@ Scaricare il pacchetto e il relativo checksum dalla [pagina Releases](https://gi
 Pacchetto per Debian/Ubuntu, compilato inizialmente su Ubuntu 24.04, architettura amd64:
 
 ```sh
-sudo apt install ./linuxdrift_1.0.1_amd64.deb
+sudo apt install ./linuxdrift_1.1.0_amd64.deb
 linuxdrift
 linuxdrift --config
 ```
@@ -74,6 +74,60 @@ o da `~/.config/linuxdrift/config.json` quando XDG_CONFIG_HOME non è assoluto o
 In assenza del file si usano i valori originali. I salvataggi sono atomici, con permessi utente;
 JSON non valido, opzioni sconosciute e valori fuori intervallo vengono segnalati senza sovrascrivere il file.
 Le immagini personali devono avere un percorso assoluto e restare disponibili sul disco.
+
+## Orologio e preset prestazioni (1.1)
+
+![Orologio opzionale con sfondo sfumato, cattura reale](docs/assets/clock.webp)
+
+In `linuxdrift --config` puoi attivare **Mostra orologio HH:MM**, scegliere la dimensione
+(4–25% del lato corto dello schermo), sette posizioni fisse oppure **Casuale**.
+In modalità casuale cambia posizione ogni 5–3600 secondi (predefinito: 60), rimanendo
+all’interno dello schermo, anche dopo un ridimensionamento. L’ora è quella locale del computer,
+in formato 24 ore. L’orologio è disattivato per impostazione iniziale.
+
+Lo sfondo nero è opzionale: **opacità 0** lo disattiva; aumentandola migliora il contrasto.
+La sfumatura verso il trasparente ha cinque livelli: Netto, Leggera, Media, Morbida e Diffusa.
+Il carattere incluso è **Inter Light**, un’alternativa libera dall’aspetto vicino a macOS,
+non il font Apple. [Inter](https://github.com/rsms/inter) è distribuito con la propria
+[licenza SIL OFL](linuxdrift/assets/Inter-LICENSE.txt); i font Apple non sono inclusi.
+
+**Salva** conserva orologio e animazione nello stesso `config.json`. Le configurazioni precedenti
+restano valide e mantengono i loro valori. Il testo viene rasterizzato solo quando cambia il minuto
+o la risoluzione; il disegno aggiunge un solo rettangolo GPU per fotogramma, senza finestre separate.
+
+I dieci preset agiscono su risoluzione del fluido, iterazioni, densità delle linee e frequenza
+della simulazione. Conservano palette, orologio e personalizzazioni estetiche. Il carico è una
+**stima relativa**, non un benchmark: risoluzione, driver e hardware cambiano il risultato.
+Il lavoro è prevalentemente GPU; con rendering software ricade sulla CPU.
+
+| Preset | Carico GPU previsto | Fluido | Pressione | Griglia | Passi/s |
+|---|---|---:|---:|---:|---:|
+| Eco | minimo | 32 | 4 | 32 | 30 |
+| Leggero | molto basso | 48 | 6 | 28 | 45 |
+| Haswell fluido | basso | 64 | 8 | 24 | 60 |
+| Leggero Plus | basso–medio | 64 | 12 | 24 | 60 |
+| Bilanciato | medio | 80 | 10 | 22 | 60 |
+| Bilanciato Plus | medio–alto | 96 | 12 | 20 | 60 |
+| Dettagliato | alto | 112 | 16 | 18 | 60 |
+| Originale Flux | alto | 128 | 20 | 16 | 60 |
+| Alta qualità | molto alto | 160 | 24 | 14 | 60 |
+| Ultra | massimo | 192 | 30 | 12 | 60 |
+
+**Haswell fluido** riprende il profilo 64 / 8 / 24 risultato fluido nella prova dell’utente;
+non garantisce le stesse prestazioni su tutte le GPU Haswell. Se modifichi i parametri del preset,
+il menu torna a **Personalizzato**. Selezionare un preset nella finestra non scrive nulla fino a **Salva**.
+
+Prove temporanee da terminale, senza modificare il file:
+
+```sh
+linuxdrift --preset haswell --clock
+linuxdrift --no-clock
+linuxdrift --list-presets
+linuxdrift --set 'clock={"enabled":true,"position":"random","moveInterval":60,"size":12,"backgroundOpacity":0.6,"backgroundFeather":75}'
+```
+
+`xscreensaver-demo` offre anche la scelta del preset e Mostra/Nascondi orologio;
+le impostazioni dettagliate restano accessibili con `linuxdrift --config`.
 
 ## X11 e Wayland
 

@@ -1,3 +1,4 @@
+mod clock;
 mod config;
 mod xscreensaver;
 use clap::Parser;
@@ -20,6 +21,7 @@ use flux::{display_size::DisplaySize, Flux, Settings};
 
 struct App {
     flux: Flux,
+    clock: Option<clock::ClockOverlay>,
 }
 
 struct GpuState {
@@ -78,6 +80,7 @@ struct FluxApp {
     app: Option<App>,
     start: std::time::Instant,
     settings: Arc<Settings>,
+    clock_settings: config::ClockSettings,
     palette: Option<RgbaImage>,
     options: Options,
     pointer: Option<winit::dpi::PhysicalPosition<f64>>,
@@ -104,6 +107,18 @@ struct Options {
     /// Override a saved setting for this invocation: --set lineLength=300
     #[arg(long = "set", value_name = "KEY=JSON")]
     overrides: Vec<String>,
+    /// Show the saved clock (override enabled only).
+    #[arg(long, conflicts_with = "no_clock")]
+    clock: bool,
+    /// Hide the clock for this invocation.
+    #[arg(long)]
+    no_clock: bool,
+    /// Apply a performance preset for this invocation (see --list-presets).
+    #[arg(long)]
+    preset: Option<String>,
+    /// List the ten performance presets as JSON.
+    #[arg(long)]
+    list_presets: bool,
     /// Override the palette for this invocation.
     #[arg(long, value_parser = ["original", "plasma", "poolside", "gumdrop", "silver", "charcoal", "glitter", "andromeda", "verdant", "freedom"])]
     palette: Option<String>,
@@ -157,14 +172,17 @@ fn execute() -> config::Result<()> {
     });
     let options = Options::parse_from(arguments);
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("error")).init();
+    if options.list_presets {
+        println!("{}", serde_json::to_string_pretty(&config::presets())?);
+        return Ok(());
+    }
     let path = config::path()?;
     let mut settings = config::load(&path)?;
     if options.config {
         return config::edit(&path, settings);
     }
-    if options.print_config {
-        println!("{}", serde_json::to_string_pretty(&settings)?);
-        return Ok(());
+    if let Some(id) = &options.preset {
+        config::apply_preset(&mut settings, id)?;
     }
     let mut value = serde_json::to_value(&settings)?;
     for item in &options.overrides {
@@ -183,7 +201,20 @@ fn execute() -> config::Result<()> {
             name => serde_json::json!({"ImageFile": format!("builtin:{name}")}),
         };
     }
+    if !options.overrides.is_empty() {
+        value["performancePreset"] = "custom".into();
+    }
     settings = config::parse(&serde_json::to_vec(&value)?)?;
+    if options.clock {
+        settings.clock.enabled = true;
+    }
+    if options.no_clock {
+        settings.clock.enabled = false;
+    }
+    if options.print_config {
+        println!("{}", serde_json::to_string_pretty(&settings)?);
+        return Ok(());
+    }
     let palette = config::palette(&settings)?;
     if options.check_config {
         println!("Valid: {}", path.display());
@@ -231,7 +262,8 @@ fn execute() -> config::Result<()> {
         gpu: None,
         app: None,
         start: std::time::Instant::now(),
-        settings: Arc::new(settings),
+        clock_settings: settings.clock,
+        settings: Arc::new(settings.flux),
         palette,
         options,
         pointer: None,
@@ -382,7 +414,10 @@ impl ApplicationHandler for FluxApp {
         }
         window.set_visible(true);
 
-        self.app = Some(App { flux });
+        let clock = self.clock_settings.enabled.then(|| {
+            clock::ClockOverlay::new(&device, surface_output.format, self.clock_settings.clone())
+        });
+        self.app = Some(App { flux, clock });
 
         self.gpu = Some(GpuState {
             device,
@@ -513,6 +548,17 @@ impl ApplicationHandler for FluxApp {
                     self.start.elapsed().as_secs_f64() * 1000.0,
                 );
 
+                if let Some(clock) = &mut app.clock {
+                    clock.draw(
+                        &gpu.device,
+                        &gpu.command_queue,
+                        &mut encoder,
+                        &view,
+                        gpu.config.width,
+                        gpu.config.height,
+                        self.start.elapsed(),
+                    );
+                }
                 gpu.command_queue.submit(Some(encoder.finish()));
                 window.pre_present_notify();
                 gpu.command_queue.present(frame);

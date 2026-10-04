@@ -14,6 +14,24 @@
     <option id="verdant" _label="Verdant" arg-set="--palette verdant" />
     <option id="freedom" _label="Freedom" arg-set="--palette freedom" />
   </select>
+  <select id="performance">
+    <option id="saved-performance" _label="Prestazioni salvate con linuxdrift --config" />
+    <option id="perf-eco" _label="Eco — GPU minimo" arg-set="--preset eco" />
+    <option id="perf-light" _label="Leggero — GPU molto basso" arg-set="--preset light" />
+    <option id="perf-haswell" _label="Haswell fluido — GPU basso" arg-set="--preset haswell" />
+    <option id="perf-light-plus" _label="Leggero Plus — GPU basso–medio" arg-set="--preset light-plus" />
+    <option id="perf-balanced" _label="Bilanciato — GPU medio" arg-set="--preset balanced" />
+    <option id="perf-balanced-plus" _label="Bilanciato Plus — GPU medio–alto" arg-set="--preset balanced-plus" />
+    <option id="perf-detailed" _label="Dettagliato — GPU alto" arg-set="--preset detailed" />
+    <option id="perf-original" _label="Originale Flux — GPU alto" arg-set="--preset original" />
+    <option id="perf-high" _label="Alta qualità — GPU molto alto" arg-set="--preset high" />
+    <option id="perf-ultra" _label="Ultra — GPU massimo" arg-set="--preset ultra" />
+  </select>
+  <select id="clock">
+    <option id="saved-clock" _label="Orologio come da configurazione salvata" />
+    <option id="clock-on" _label="Mostra orologio" arg-set="--clock" />
+    <option id="clock-off" _label="Nascondi orologio" arg-set="--no-clock" />
+  </select>
   <hgroup>
     <vgroup>
       <number id="lineLength" type="slider" arg="--set lineLength=%" _label="Lunghezza linee" low="1" high="1000" default="450" />
@@ -32,7 +50,7 @@ Non e un port ufficiale Apple. Funziona completamente offline.
 
 Le opzioni qui selezionate sono salvate da XScreenSaver e hanno precedenza
 sul file utente LinuxDrift. Per tutte le opzioni, i canali rumore e le immagini
-personali, aprire "Impostazioni LinuxDrift" oppure eseguire linuxdrift --config.
+personali, la posizione e la sfumatura dell’orologio, aprire "Impostazioni LinuxDrift" oppure eseguire linuxdrift --config.
 
 Sorgente originale su GitHub: sandydoo/flux
 Versione Linux su GitHub: spacecdr/LinuxDrift

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-version="${LINUXDRIFT_VERSION:-1.0.1}"
+version="${LINUXDRIFT_VERSION:-1.1.0}"
 arch="$(dpkg --print-architecture)"
 if [[ "${1:-}" != "--no-build" ]]; then
     cargo build --locked --release -p linuxdrift
@@ -13,6 +13,7 @@ strip "$stage/usr/bin/linuxdrift"
 install -Dm644 packaging/linuxdrift.desktop "$stage/usr/share/applications/linuxdrift.desktop"
 install -Dm644 packaging/linuxdrift-config.desktop "$stage/usr/share/applications/linuxdrift-config.desktop"
 install -Dm644 packaging/linuxdrift.svg "$stage/usr/share/icons/hicolor/scalable/apps/linuxdrift.svg"
+install -Dm644 linuxdrift/assets/Inter-LICENSE.txt "$stage/usr/share/doc/linuxdrift/Inter-LICENSE.txt"
 install -Dm644 LICENSE "$stage/usr/share/doc/linuxdrift/copyright"
 install -Dm644 README.md "$stage/usr/share/doc/linuxdrift/README.md"
 for asset in docs/assets/*; do
@@ -49,9 +50,9 @@ Recommends: mesa-vulkan-drivers, xscreensaver
 Installed-Size: $(du -sk "$stage/usr" | cut -f1)
 Homepage: https://github.com/spacecdr/LinuxDrift
 Description: Linux Drift/Deriva screensaver for X11, Wayland and XScreenSaver
- LinuxDrift renders the Flux fluid animation fullscreen, without overlays.
+ LinuxDrift renders the Flux fluid animation fullscreen with an optional clock.
  Based on Flux by Sander Melnikov, inspired by macOS Drift/Deriva.
- Includes persistent settings and native XScreenSaver integration.
+ Includes ten performance presets, persistent settings and XScreenSaver integration.
 CONTROL
 out="dist/linuxdrift_${version}_${arch}.deb"
 dpkg-deb --root-owner-group --build "$stage" "$out"

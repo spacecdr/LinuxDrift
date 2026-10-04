@@ -37,6 +37,7 @@ def run():
         grid = Gtk.Grid(column_spacing=24, row_spacing=10)
         scroll.set_child(grid)
         getters = {}
+        spin_widgets = {}
         row = 0
 
         def add(label, widget):
@@ -59,10 +60,61 @@ def run():
             widget = Gtk.SpinButton.new_with_range(low, high, step)
             widget.set_digits(0 if integer else 4)
             widget.set_value(value)
+            spin_widgets[label] = widget
             add(label, widget)
             return widget.get_value_as_int if integer else widget.get_value
 
         settings = copy.deepcopy(payload["settings"])
+        preset_picker = Gtk.ComboBoxText()
+        preset_picker.set_name("performance-preset")
+        preset_picker.append("custom", "Personalizzato")
+        for preset in payload["presets"]:
+            preset_picker.append(preset["id"], f'{preset["label"]} — GPU: {preset["gpu"]}')
+        preset_picker.set_active_id(settings.get("performancePreset", "custom"))
+        add("Preset prestazioni", preset_picker)
+        getters["performancePreset"] = preset_picker.get_active_id
+        note = Gtk.Label(label="Carico indicativo: CPU generalmente basso, lavoro soprattutto sulla GPU.\nDipende da risoluzione, driver e hardware; con rendering software aumenta la CPU.", wrap=True, xalign=0)
+        note.add_css_class("dim-label")
+        grid.attach(note, 0, row, 2, 1)
+        row += 1
+
+        clock = settings["clock"]
+        enabled = Gtk.CheckButton(label="Mostra orologio HH:MM (ora locale)")
+        enabled.set_name("clock-enabled")
+        enabled.set_active(clock["enabled"])
+        add("Orologio", enabled)
+        position = Gtk.ComboBoxText()
+        position.set_name("clock-position")
+        for key, label in [("center", "Centro"), ("top", "In alto"), ("bottom", "In basso"), ("top-left", "Alto a sinistra"), ("top-right", "Alto a destra"), ("bottom-left", "Basso a sinistra"), ("bottom-right", "Basso a destra"), ("random", "Casuale, cambia periodicamente")]:
+            position.append(key, label)
+        position.set_active_id(clock["position"])
+        add("Posizione orologio", position)
+        interval = spin("Cambia posizione ogni (secondi)", clock["moveInterval"], [5, 3600, 5], True)
+        size = spin("Dimensione orologio (% lato corto)", clock["size"], [4, 25, 1])
+        opacity = spin("Opacità sfondo (0 = nessuno)", clock["backgroundOpacity"], [0, 1, 0.05])
+        feather = Gtk.ComboBoxText()
+        for value, label in [(0, "Netto"), (25, "Leggera"), (50, "Media"), (75, "Morbida"), (100, "Diffusa")]:
+            feather.append(str(value), label)
+        if clock["backgroundFeather"] not in [0, 25, 50, 75, 100]:
+            feather.append(str(clock["backgroundFeather"]), "Personalizzata")
+        feather.set_active_id(str(clock["backgroundFeather"]))
+        # JSON floats can arrive as 75.0 even though IDs use integers.
+        if feather.get_active_id() is None:
+            feather.set_active_id(str(int(clock["backgroundFeather"])))
+        add("Sfumatura verso il trasparente", feather)
+        getters["clock"] = lambda: dict(enabled=enabled.get_active(), position=position.get_active_id(), moveInterval=interval(), size=size(), backgroundOpacity=opacity(), backgroundFeather=float(feather.get_active_id()))
+
+        def clock_sensitivity(*_):
+            on = enabled.get_active()
+            position.set_sensitive(on)
+            for label in ["Dimensione orologio (% lato corto)", "Opacità sfondo (0 = nessuno)"]:
+                spin_widgets[label].set_sensitive(on)
+            spin_widgets["Cambia posizione ogni (secondi)"].set_sensitive(on and position.get_active_id() == "random")
+            feather.set_sensitive(on and opacity() > 0)
+        enabled.connect("toggled", clock_sensitivity)
+        position.connect("changed", clock_sensitivity)
+        spin_widgets["Opacità sfondo (0 = nessuno)"].connect("value-changed", clock_sensitivity)
+        clock_sensitivity()
         modes = ["Normal", "DebugNoise", "DebugFluid", "DebugPressure", "DebugDivergence"]
         mode = combo("Visualizzazione", modes, settings["mode"])
         getters["mode"] = mode.get_active_id
@@ -91,6 +143,26 @@ def run():
         labels = {"fluidSize": "Risoluzione fluido", "fluidFrameRate": "Passi fluido al secondo", "fluidTimestep": "Intervallo simulazione", "viscosity": "Viscosità", "velocityDissipation": "Dissipazione velocità", "diffusionIterations": "Iterazioni diffusione", "pressureIterations": "Iterazioni pressione", "lineLength": "Lunghezza linee", "lineWidth": "Larghezza linee", "lineBeginOffset": "Inizio sfumatura", "lineVariance": "Varianza", "gridSpacing": "Distanza griglia", "viewScale": "Zoom", "overallScale": "Scala complessiva (1 = 100%)", "noiseMultiplier": "Intensità rumore"}
         for key, bounds in payload["ranges"].items():
             getters[key] = spin(labels[key], settings[key], bounds, isinstance(payload["defaults"][key], int))
+        applying_preset = False
+        preset_keys = set(payload["presets"][0]["settings"])
+
+        def apply_preset(widget):
+            nonlocal applying_preset
+            selected = next((p for p in payload["presets"] if p["id"] == widget.get_active_id()), None)
+            if selected is None:
+                return
+            applying_preset = True
+            for key, value in selected["settings"].items():
+                spin_widgets[labels[key]].set_value(value)
+            applying_preset = False
+
+        def mark_custom(_):
+            if not applying_preset:
+                preset_picker.set_active_id("custom")
+
+        preset_picker.connect("changed", apply_preset)
+        for key in preset_keys:
+            spin_widgets[labels[key]].connect("value-changed", mark_custom)
         pressure = settings["pressureMode"]
         pressure_mode = combo("Pressione", ["ClearWith", "Retain"], "Retain" if pressure == "Retain" else "ClearWith")
         pressure_value = spin("Valore reset pressione", pressure.get("ClearWith", 0) if isinstance(pressure, dict) else 0, [-100, 100, 0.1])

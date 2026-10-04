@@ -1,0 +1,142 @@
+[
+  {
+    "id": "eco",
+    "label": "Eco",
+    "load": "minimo",
+    "cpu": "basso (prevalentemente GPU)",
+    "gpu": "minimo",
+    "settings": {
+      "fluidSize": 32,
+      "pressureIterations": 4,
+      "gridSpacing": 32,
+      "fluidFrameRate": 30,
+      "diffusionIterations": 3
+    }
+  },
+  {
+    "id": "light",
+    "label": "Leggero",
+    "load": "molto basso",
+    "cpu": "basso (prevalentemente GPU)",
+    "gpu": "molto basso",
+    "settings": {
+      "fluidSize": 48,
+      "pressureIterations": 6,
+      "gridSpacing": 28,
+      "fluidFrameRate": 45,
+      "diffusionIterations": 3
+    }
+  },
+  {
+    "id": "haswell",
+    "label": "Haswell fluido",
+    "load": "basso",
+    "cpu": "basso (prevalentemente GPU)",
+    "gpu": "basso",
+    "settings": {
+      "fluidSize": 64,
+      "pressureIterations": 8,
+      "gridSpacing": 24,
+      "fluidFrameRate": 60,
+      "diffusionIterations": 3
+    }
+  },
+  {
+    "id": "light-plus",
+    "label": "Leggero Plus",
+    "load": "basso–medio",
+    "cpu": "basso (prevalentemente GPU)",
+    "gpu": "basso–medio",
+    "settings": {
+      "fluidSize": 64,
+      "pressureIterations": 12,
+      "gridSpacing": 24,
+      "fluidFrameRate": 60,
+      "diffusionIterations": 3
+    }
+  },
+  {
+    "id": "balanced",
+    "label": "Bilanciato",
+    "load": "medio",
+    "cpu": "basso (prevalentemente GPU)",
+    "gpu": "medio",
+    "settings": {
+      "fluidSize": 80,
+      "pressureIterations": 10,
+      "gridSpacing": 22,
+      "fluidFrameRate": 60,
+      "diffusionIterations": 3
+    }
+  },
+  {
+    "id": "balanced-plus",
+    "label": "Bilanciato Plus",
+    "load": "medio–alto",
+    "cpu": "basso (prevalentemente GPU)",
+    "gpu": "medio–alto",
+    "settings": {
+      "fluidSize": 96,
+      "pressureIterations": 12,
+      "gridSpacing": 20,
+      "fluidFrameRate": 60,
+      "diffusionIterations": 3
+    }
+  },
+  {
+    "id": "detailed",
+    "label": "Dettagliato",
+    "load": "alto",
+    "cpu": "basso (prevalentemente GPU)",
+    "gpu": "alto",
+    "settings": {
+      "fluidSize": 112,
+      "pressureIterations": 16,
+      "gridSpacing": 18,
+      "fluidFrameRate": 60,
+      "diffusionIterations": 3
+    }
+  },
+  {
+    "id": "original",
+    "label": "Originale Flux",
+    "load": "alto",
+    "cpu": "basso (prevalentemente GPU)",
+    "gpu": "alto",
+    "settings": {
+      "fluidSize": 128,
+      "pressureIterations": 20,
+      "gridSpacing": 16,
+      "fluidFrameRate": 60,
+      "diffusionIterations": 3
+    }
+  },
+  {
+    "id": "high",
+    "label": "Alta qualità",
+    "load": "molto alto",
+    "cpu": "basso (prevalentemente GPU)",
+    "gpu": "molto alto",
+    "settings": {
+      "fluidSize": 160,
+      "pressureIterations": 24,
+      "gridSpacing": 14,
+      "fluidFrameRate": 60,
+      "diffusionIterations": 3
+    }
+  },
+  {
+    "id": "ultra",
+    "label": "Ultra",
+    "load": "massimo",
+    "cpu": "basso (prevalentemente GPU)",
+    "gpu": "massimo",
+    "settings": {
+      "fluidSize": 192,
+      "pressureIterations": 30,
+      "gridSpacing": 12,
+      "fluidFrameRate": 60,
+      "diffusionIterations": 3
+    }
+  }
+]

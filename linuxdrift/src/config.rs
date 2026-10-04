@@ -1,6 +1,6 @@
 use flux::{
     settings::{ColorMode, ColorPreset, PressureMode},
-    Settings,
+    Settings as FluxSettings,
 };
 use serde_json::{json, Value};
 use std::{
@@ -9,6 +9,110 @@ use std::{
     process::{Command, Stdio},
 };
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+pub struct Settings {
+    #[serde(flatten)]
+    pub flux: FluxSettings,
+    pub clock: ClockSettings,
+    pub performance_preset: String,
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self {
+            flux: FluxSettings::default(),
+            clock: ClockSettings::default(),
+            performance_preset: "custom".into(),
+        }
+    }
+}
+impl std::ops::Deref for Settings {
+    type Target = FluxSettings;
+    fn deref(&self) -> &FluxSettings {
+        &self.flux
+    }
+}
+impl std::ops::DerefMut for Settings {
+    fn deref_mut(&mut self) -> &mut FluxSettings {
+        &mut self.flux
+    }
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[serde(default, rename_all = "camelCase", deny_unknown_fields)]
+pub struct ClockSettings {
+    pub enabled: bool,
+    pub position: String,
+    pub move_interval: u64,
+    pub size: f32,
+    pub background_opacity: f32,
+    pub background_feather: f32,
+}
+impl Default for ClockSettings {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            position: "center".into(),
+            move_interval: 60,
+            size: 12.0,
+            background_opacity: 0.0,
+            background_feather: 75.0,
+        }
+    }
+}
+impl ClockSettings {
+    fn validate(&self) -> Result<()> {
+        if ![
+            "center",
+            "top",
+            "bottom",
+            "top-left",
+            "top-right",
+            "bottom-left",
+            "bottom-right",
+            "random",
+        ]
+        .contains(&self.position.as_str())
+        {
+            return Err("Invalid clock position".into());
+        }
+        if !(5..=3600).contains(&self.move_interval) {
+            return Err("Clock move interval must be 5–3600 seconds".into());
+        }
+        for (name, value, low, high) in [
+            ("size", self.size, 4.0, 25.0),
+            ("backgroundOpacity", self.background_opacity, 0.0, 1.0),
+            ("backgroundFeather", self.background_feather, 0.0, 100.0),
+        ] {
+            if !value.is_finite() || value < low || value > high {
+                return Err(format!("Invalid clock {name}: expected {low}–{high}").into());
+            }
+        }
+        Ok(())
+    }
+}
+
+pub fn presets() -> Value {
+    serde_json::from_str(include_str!("presets.json")).unwrap()
+}
+pub fn apply_preset(settings: &mut Settings, id: &str) -> Result<()> {
+    let presets = presets();
+    let preset = presets
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|p| p["id"] == id)
+        .ok_or_else(|| format!("Unknown performance preset: {id}"))?;
+    let mut value = serde_json::to_value(&*settings)?;
+    for (key, value_override) in preset["settings"].as_object().unwrap() {
+        value[key] = value_override.clone();
+    }
+    value["performancePreset"] = id.into();
+    *settings = parse(&serde_json::to_vec(&value)?)?;
+    Ok(())
+}
 
 pub fn path() -> Result<PathBuf> {
     if let Some(dir) = std::env::var_os("XDG_CONFIG_HOME").filter(|v| Path::new(v).is_absolute()) {
@@ -35,6 +139,16 @@ pub fn ranges() -> Value {
 }
 
 pub fn validate(settings: &Settings) -> Result<()> {
+    settings.clock.validate()?;
+    if settings.performance_preset != "custom"
+        && !presets()
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|p| p["id"] == settings.performance_preset)
+    {
+        return Err("Unknown performance preset".into());
+    }
     let value = serde_json::to_value(settings)?;
     for (key, bounds) in ranges().as_object().unwrap() {
         let number = value[key]
@@ -148,7 +262,7 @@ pub fn edit(path: &Path, settings: Settings) -> Result<()> {
         .map_err(|e| format!("Configuration requires Python 3, PyGObject and GTK 4: {e}"))?;
     serde_json::to_writer(
         child.stdin.take().unwrap(),
-        &json!({"settings": settings, "defaults": Settings::default(), "ranges": ranges()}),
+        &json!({"settings": settings, "defaults": Settings::default(), "ranges": ranges(), "presets": presets()}),
     )?;
     let output = child.wait_with_output()?;
     if !output.status.success() {
@@ -200,6 +314,59 @@ mod tests {
         settings.view_scale = 0.0;
         assert!(save(&path, &settings).is_err());
         assert_eq!(before, std::fs::read(&path).unwrap());
+    }
+    #[test]
+    fn migrates_old_config_and_round_trips_clock() {
+        let mut settings =
+            parse(br#"{"fluidSize":64,"pressureIterations":8,"gridSpacing":24}"#).unwrap();
+        assert!(!settings.clock.enabled);
+        settings.clock.enabled = true;
+        settings.clock.position = "random".into();
+        settings.clock.background_opacity = 0.65;
+        settings.clock.background_feather = 100.0;
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("config.json");
+        save(&path, &settings).unwrap();
+        let restored = load(&path).unwrap();
+        assert_eq!(restored.fluid_size, 64);
+        assert!(restored.clock.enabled);
+        assert_eq!(restored.clock.position, "random");
+        assert_eq!(restored.clock.background_opacity, 0.65);
+        assert_eq!(restored.clock.background_feather, 100.0);
+    }
+    #[test]
+    fn clock_validation_and_all_ten_presets() {
+        for value in [
+            r#"{"clock":{"size":0}}"#,
+            r#"{"clock":{"moveInterval":0}}"#,
+            r#"{"clock":{"backgroundOpacity":1.1}}"#,
+            r#"{"clock":{"backgroundFeather":101}}"#,
+            r#"{"clock":{"position":"outside"}}"#,
+            r#"{"clock":{"typo":true}}"#,
+            r#"{"performancePreset":"missing"}"#,
+        ] {
+            assert!(parse(value.as_bytes()).is_err(), "{value}");
+        }
+        assert_eq!(presets().as_array().unwrap().len(), 10);
+        for preset in presets().as_array().unwrap() {
+            let mut settings = Settings::default();
+            settings.clock.enabled = true;
+            settings.line_length = 321.0;
+            apply_preset(&mut settings, preset["id"].as_str().unwrap()).unwrap();
+            validate(&settings).unwrap();
+            assert!(settings.clock.enabled);
+            assert_eq!(settings.line_length, 321.0);
+            if preset["id"] == "haswell" {
+                assert_eq!(
+                    (
+                        settings.fluid_size,
+                        settings.pressure_iterations,
+                        settings.grid_spacing
+                    ),
+                    (64, 8, 24)
+                );
+            }
+        }
     }
     #[test]
     fn all_embedded_palettes_decode() {

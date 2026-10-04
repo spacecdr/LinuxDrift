@@ -43,7 +43,7 @@ with tempfile.TemporaryDirectory(prefix='linuxdrift-test-') as directory:
         parent = x.XCreateSimpleWindow(display, x.XDefaultRootWindow(display), 0, 0, 640, 480, 0, 0, 0)
         x.XMapWindow(display, parent); x.XFlush(display)
         child_env = dict(env, XSCREENSAVER_WINDOW=hex(parent), XDG_SESSION_TYPE='wayland')
-        proc = subprocess.Popen([binary, '-root', '--duration', '22', '--palette', 'plasma', '--set', 'fluidSize=32', '--set', 'pressureIterations=8'], env=child_env, stderr=subprocess.PIPE, text=True)
+        proc = subprocess.Popen([binary, '-root', '--duration', '22', '--palette', 'plasma', '--set', 'fluidSize=32', '--set', 'pressureIterations=8', '--set', 'clock={"enabled":true,"position":"random","moveInterval":5,"backgroundOpacity":0.65}'], env=child_env, stderr=subprocess.PIPE, text=True)
         time.sleep(3)
         x.XResizeWindow(display, parent, 800, 600); x.XFlush(display)
         time.sleep(13)
@@ -54,6 +54,8 @@ with tempfile.TemporaryDirectory(prefix='linuxdrift-test-') as directory:
         assert colors > 10, f'Rendered image is blank ({colors} colors)'
         _, stderr = proc.communicate(timeout=30)
         assert proc.returncode == 0 and 'Rendered ' in stderr, stderr
+        assert stderr.count('Clock moved:') >= 2, stderr
+        assert 'Clock texture refreshed:' in stderr, stderr
         Path('/tmp/linuxdrift-embedded.log').write_text(stderr)
         print('XScreenSaver parent embedding, resize and palette: PASS')
         subprocess.run(['xvfb-run', '-a', '/usr/bin/python3', str(Path(__file__).with_name('gui_smoke.py'))], env=env, check=True, timeout=30)
@@ -68,6 +70,7 @@ with tempfile.TemporaryDirectory(prefix='linuxdrift-test-') as directory:
             if Path(directory, 'linuxdrift-test').exists(): break
             if weston.poll() is not None: raise RuntimeError(Path('/tmp/linuxdrift-weston.log').read_text())
             time.sleep(0.1)
-        run(env, [], 'wayland-fullscreen')
+        run(env, ['--clock', '--preset', 'eco'], 'wayland-fullscreen')
+        assert 'Clock texture refreshed:' in Path('/tmp/linuxdrift-wayland-fullscreen.log').read_text()
     finally:
         weston.terminate(); weston.wait(); log.close()
