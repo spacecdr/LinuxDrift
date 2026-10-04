@@ -252,18 +252,25 @@ impl ApplicationHandler for FluxApp {
             return;
         }
 
-        let logical_size = winit::dpi::LogicalSize::new(1280, 800);
-
         let window_attributes = Window::default_attributes()
             .with_title("LinuxDrift")
             .with_decorations(self.options.preview)
-            .with_resizable(self.options.preview)
-            .with_inner_size(logical_size)
+            // A non-resizable Wayland window sends equal min/max size hints.
+            // Mutter then drops fullscreen to honour those fixed dimensions.
+            // Let the compositor control the saver size; only previews get a
+            // preferred initial window size.
+            .with_resizable(true)
             .with_fullscreen(if self.options.preview {
                 None
             } else {
                 Some(winit::window::Fullscreen::Borderless(None))
             });
+
+        let window_attributes = if self.options.preview {
+            window_attributes.with_inner_size(winit::dpi::LogicalSize::new(1280, 800))
+        } else {
+            window_attributes
+        };
 
         let window_attributes = if let Some(parent) = &self.parent {
             use winit::platform::x11::WindowAttributesExtX11;
@@ -443,7 +450,13 @@ impl ApplicationHandler for FluxApp {
                     self.pointer = Some(position);
                 }
             }
-            WindowEvent::Resized(_) => {
+            WindowEvent::Resized(size) => {
+                log::info!(
+                    "Window configured: {}x{}, fullscreen={}",
+                    size.width,
+                    size.height,
+                    window.fullscreen().is_some()
+                );
                 gpu.resize_pending = true;
                 gpu.scale_factor = window.scale_factor();
                 window.request_redraw();

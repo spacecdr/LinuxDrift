@@ -48,7 +48,7 @@ Scaricare il pacchetto e il relativo checksum dalla [pagina Releases](https://gi
 Pacchetto per Debian/Ubuntu, compilato inizialmente su Ubuntu 24.04, architettura amd64:
 
 ```sh
-sudo apt install ./linuxdrift_1.0.0_amd64.deb
+sudo apt install ./linuxdrift_1.0.1_amd64.deb
 linuxdrift
 linuxdrift --config
 ```

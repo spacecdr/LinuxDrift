@@ -14,6 +14,8 @@ def run(env, args, name):
     Path('/tmp/linuxdrift-' + name + '.log').write_text(output.stderr)
     assert output.returncode == 0, output.stderr
     assert 'Rendered ' in output.stderr, output.stderr
+    if name == 'wayland-fullscreen':
+        assert 'Window configured: 1920x1080, fullscreen=true' in output.stderr, output.stderr
     print(name + ': PASS (' + output.stderr.split('Rendered ')[-1].strip() + ')')
 
 with tempfile.TemporaryDirectory(prefix='linuxdrift-test-') as directory:
@@ -60,7 +62,7 @@ with tempfile.TemporaryDirectory(prefix='linuxdrift-test-') as directory:
     env['XDG_SESSION_TYPE'] = 'wayland'
     env['WAYLAND_DISPLAY'] = 'linuxdrift-test'
     log = open('/tmp/linuxdrift-weston.log', 'w')
-    weston = subprocess.Popen(['weston', '--backend=headless-backend.so', '--socket=linuxdrift-test', '--idle-time=0', '--width=1280', '--height=800'], env=env, stdout=log, stderr=log)
+    weston = subprocess.Popen(['weston', '--backend=headless-backend.so', '--socket=linuxdrift-test', '--idle-time=0', '--width=1920', '--height=1080'], env=env, stdout=log, stderr=log)
     try:
         for _ in range(100):
             if Path(directory, 'linuxdrift-test').exists(): break

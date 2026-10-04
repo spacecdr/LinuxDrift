@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-version="${LINUXDRIFT_VERSION:-1.0.0}"
+version="${LINUXDRIFT_VERSION:-1.0.1}"
 arch="$(dpkg --print-architecture)"
 if [[ "${1:-}" != "--no-build" ]]; then
     cargo build --locked --release -p linuxdrift
