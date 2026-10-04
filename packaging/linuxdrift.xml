@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='utf-8'?>
+<screensaver name="linuxdrift" _label="LinuxDrift — Drift / Deriva">
+  <command arg="--root" />
+  <select id="palette">
+    <option id="saved" _label="Palette salvata con linuxdrift --config" />
+    <option id="original" _label="Original" arg-set="--palette original" />
+    <option id="plasma" _label="Plasma" arg-set="--palette plasma" />
+    <option id="poolside" _label="Poolside" arg-set="--palette poolside" />
+    <option id="gumdrop" _label="Gumdrop" arg-set="--palette gumdrop" />
+    <option id="silver" _label="Silver" arg-set="--palette silver" />
+    <option id="charcoal" _label="Charcoal" arg-set="--palette charcoal" />
+    <option id="glitter" _label="Glitter" arg-set="--palette glitter" />
+    <option id="andromeda" _label="Andromeda" arg-set="--palette andromeda" />
+    <option id="verdant" _label="Verdant" arg-set="--palette verdant" />
+    <option id="freedom" _label="Freedom" arg-set="--palette freedom" />
+  </select>
+  <hgroup>
+    <vgroup>
+      <number id="lineLength" type="slider" arg="--set lineLength=%" _label="Lunghezza linee" low="1" high="1000" default="450" />
+      <number id="lineWidth" type="slider" arg="--set lineWidth=%" _label="Larghezza linee" low="0.1" high="100" default="9" />
+      <number id="lineBeginOffset" type="slider" arg="--set lineBeginOffset=%" _label="Inizio sfumatura" low="0" high="1" default="0.4" />
+      <number id="lineVariance" type="slider" arg="--set lineVariance=%" _label="Varianza" low="0" high="1" default="0.5" />
+      <number id="overallScale" type="slider" arg="--set overallScale=%" _label="Scala complessiva" low="0.1" high="10" default="1" />
+    </vgroup>
+    <vgroup>
+      <number id="noiseMultiplier" type="slider" arg="--set noiseMultiplier=%" _label="Intensita rumore" low="0" high="10" default="0.45" />
+    </vgroup>
+  </hgroup>
+  <_description>LinuxDrift: versione Linux ispirata al salvaschermo Drift / Deriva di macOS.
+Basato su Flux di Sander Melnikov (sandydoo/flux), licenza MIT.
+Non e un port ufficiale Apple. Funziona completamente offline.
+
+Le opzioni qui selezionate sono salvate da XScreenSaver e hanno precedenza
+sul file utente LinuxDrift. Per tutte le opzioni, i canali rumore e le immagini
+personali, aprire "Impostazioni LinuxDrift" oppure eseguire linuxdrift --config.
+
+Sorgente originale su GitHub: sandydoo/flux
+Versione Linux su GitHub: spacecdr/LinuxDrift
+</_description>
+</screensaver>

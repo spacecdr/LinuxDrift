@@ -1,0 +1,23 @@
+[package]
+name = "linuxdrift"
+version = "1.0.0"
+description = "Linux Drift/Deriva screensaver based on Flux, for X11, Wayland and XScreenSaver"
+authors.workspace = true
+repository = "https://github.com/spacecdr/LinuxDrift"
+license.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+env_logger.workspace = true
+flux.workspace = true
+image.workspace = true
+log.workspace = true
+pollster.workspace = true
+serde_json.workspace = true
+wgpu.workspace = true
+winit.workspace = true
+
+tempfile = "3"
+clap = { version = "4", features = ["derive"] }
+x11rb = "0.13"

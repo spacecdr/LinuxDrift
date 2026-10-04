@@ -9,3 +9,6 @@ mutagen.*
 
 # Dev shell
 /.direnv
+
+/dist/
+__pycache__/

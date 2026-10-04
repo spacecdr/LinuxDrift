@@ -3,6 +3,7 @@ resolver = "2"
 members = [
   "flux",
   "flux-desktop",
+  "linuxdrift",
   "flux-wasm",
   "flux-gl/flux",
   "flux-gl/flux-desktop",

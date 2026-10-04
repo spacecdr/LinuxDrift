@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=LinuxDrift
+Comment=Offline animated screensaver
+Comment[it]=Salvaschermo animato offline
+Exec=linuxdrift
+Icon=linuxdrift
+Terminal=false
+Categories=Utility;

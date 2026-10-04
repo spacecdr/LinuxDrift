@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Register LinuxDrift with XScreenSaver
+Exec=/usr/bin/linuxdrift-register-xscreensaver
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

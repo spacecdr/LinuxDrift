@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=LinuxDrift Settings
+Name[it]=Impostazioni LinuxDrift
+Comment=Configure the LinuxDrift screensaver
+Comment[it]=Configura il salvaschermo LinuxDrift
+Exec=linuxdrift --config
+Icon=linuxdrift
+Terminal=false
+Categories=Settings;DesktopSettings;

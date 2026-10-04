@@ -1,0 +1,32 @@
+name: LinuxDrift package and tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  deb:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build and graphical test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libwayland-dev libxkbcommon-dev libx11-dev libxrandr-dev libxi-dev libxcursor-dev dpkg-dev python3-gi gir1.2-gtk-4.0 libvulkan1 mesa-vulkan-drivers xvfb weston imagemagick x11-utils
+          rustup update stable
+      - name: Build
+        run: cargo build --locked --release -p linuxdrift
+      - name: Unit tests
+        run: |
+          cargo test --locked --release -p linuxdrift -p flux
+          python3 -m unittest discover -s tests -v
+      - name: X11, Wayland, embedding and configuration smoke tests
+        run: /usr/bin/python3 tests/render_smoke.py
+      - name: Package
+        run: ./scripts/build-deb.sh --no-build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LinuxDrift-deb-amd64
+          path: dist/*

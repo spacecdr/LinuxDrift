@@ -1,0 +1,6 @@
+#!/bin/sh
+set -e
+# Register only for the invoking non-root user. Future users register at login.
+if [ "$1" = configure ] && [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != root ]; then
+    runuser -u "$SUDO_USER" -- /usr/bin/linuxdrift-register-xscreensaver || true
+fi

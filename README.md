@@ -1,108 +1,132 @@
-<p align="center">
-  <a href="https://flux.sandydoo.me/">
-    <img width="100%" src="https://assets.sandydoo.me/flux/social-header-2022-07-07.webp" alt="Flux" />
-  </a>
+# LinuxDrift
 
-  <p align="center"><b>A open-source tribute to the macOS Drift screensaver.</b></p>
+**Versione Linux ispirata al salvaschermo Drift / Deriva di macOS**, pronta da installare come salvaschermo.
+Basata su [Flux di Sander Melnikov](https://github.com/sandydoo/flux).
+Non è un port ufficiale Apple. Mostra solo l'animazione, senza slogan, controlli o informazioni sovrapposte.
+Funziona **interamente offline**: nessun browser, server web, account o download a runtime.
+Le dieci palette originali e l'interfaccia di configurazione sono incorporate nel binario.
 
-  <p align="center">
-    <a href="https://sandydoo.gumroad.com/l/flux">Buy&nbsp;a&nbsp;screensaver</a>
-    &nbsp;·&nbsp;
-    <a href="https://flux.sandydoo.me/">Launch&nbsp;in&nbsp;browser</a>
-    &nbsp;·&nbsp;
-    <a href="https://www.youtube.com/watch?v=dURktAeZDa8">Watch&nbsp;recording</a>
-    &nbsp;·&nbsp;
-    <a href="https://x.com/sandydoo/">Follow&nbsp;me&nbsp;on&nbsp;X</a>
-  </p>
-</p>
+![LinuxDrift in esecuzione, palette Plasma](docs/linuxdrift.png)
 
-<br>
+## Requisiti di sistema
+
+- **Pacchetto verificato: Ubuntu 24.04 LTS, 64 bit x86_64 (amd64).**
+- Sessione grafica **X11 oppure Wayland**; selezione automatica all'avvio.
+- Driver **Vulkan** compatibile con wgpu; Mesa o driver proprietario della GPU. Il rendering
+  software Mesa/llvmpipe funziona, ma per l'uso quotidiano è consigliata una GPU con accelerazione.
+- **Python 3, PyGObject e GTK 4** per la finestra `--config`.
+- **XScreenSaver** per comparire in `xscreensaver-demo` e attivarsi dopo inattività su X11.
+  La modalità autonoma non richiede XScreenSaver.
+- **glibc 2.39 o successiva** per questo binario. Le altre dipendenze sono dichiarate nel `.deb` e controllate da `apt`.
+
+Altre distribuzioni Debian/Ubuntu possono funzionare se soddisfano le dipendenze, ma non sono
+ancora verificate. Ubuntu 22.04, Debian 12 e le architetture ARM non sono destinazioni del primo
+pacchetto: compilare dai sorgenti sul sistema interessato. Non richiede Internet durante l'uso.
+
+## Installazione .deb
+
+Scaricare il pacchetto e il relativo checksum dalla [pagina Releases](https://github.com/spacecdr/LinuxDrift/releases/latest).
 
 
-## Screensavers
-
-#### [Buy Flux as a Windows screensaver →][store]
-Help support development by letting your PC idle with style.
-
-## Backstory
-
-I’ve been enamoured with the Drift screensaver ever since it came out with macOS Catalina. It’s mesmerizing. I feel like it’s become an instant classic, and, dare I say, it might stand to dethrone the venerable Flurry screensaver. Hats off to the folk at Apple responsible for this gem 🙌.
-
-This is an attempt at capturing that magic and bottling it up in a more portable vessel. This isn’t a port though; the source code for the original is locked up in a spaceship somewhere in Cupertino. Instead, consider this a delicate blend of detective work and artistic liberty.
-
-## Reviews
-
-> “You’re the first person I’ve seen take this much of an interest in how we made Drift and it looks like you nailed it… minus maybe one or two little elements that give it some extra magic 😉 Great work!”
-> — anonymous Apple employee
-
-## Samples
-
-![A render of Flux in all 4 default color schemes](https://assets.sandydoo.me/flux/samples/flux-all-at-1280-800-logical.webp)
-
-![A render of Flux in the “Original” color scheme](https://assets.sandydoo.me/flux/samples/flux-original-at-1280-800-logical.webp)
-
-![A render of Flux in the “Plasma” color scheme](https://assets.sandydoo.me/flux/samples/flux-plasma-at-1280-800-logical.webp)
-
-![A render of Flux in the “Poolside” color scheme](https://assets.sandydoo.me/flux/samples/flux-poolside-at-1280-800-logical.webp)
-
-![A render of Flux in the “Freedom” color scheme](https://assets.sandydoo.me/flux/samples/flux-freedom-at-1280-800-logical.webp)
-
-## Build
-
-### Using Nix
-
-Build a new release in the `result` folder:
+Pacchetto per Debian/Ubuntu, compilato inizialmente su Ubuntu 24.04, architettura amd64:
 
 ```sh
-nix build
+sudo apt install ./linuxdrift_1.0.0_amd64.deb
+linuxdrift
+linuxdrift --config
 ```
 
-Or open a development shell with all the neccessary tools:
+Nel menu applicazioni sono disponibili **LinuxDrift** e **Impostazioni LinuxDrift**.
+Il programma funziona offline dopo l'installazione; su una macchina senza le dipendenze,
+`apt` deve procurarle durante l'installazione (oppure vanno fornite offline insieme al pacchetto).
+Occorre un driver Vulkan compatibile. Mesa supporta anche il rendering software, più lento.
+`--config` usa Python 3, PyGObject e GTK 4, dichiarati nelle dipendenze del pacchetto.
+
+## Utilizzo
+
+- `linuxdrift`: animazione a schermo intero, cursore nascosto. Muovere il mouse, premere un tasto o fare clic per uscire; una breve tolleranza iniziale evita chiusure involontarie.
+- `linuxdrift --config`: modifica palette, immagine personale, dimensioni delle linee, sfumatura, varianza, griglia, scala, fluido, rumore, seed e modalità diagnostiche. **Anteprima** prova le modifiche senza salvarle; **Salva** le conserva; **Annulla** lascia il file invariato.
+- `linuxdrift --preview`: anteprima ridimensionabile con le impostazioni salvate; Esc chiude.
+- `linuxdrift --check-config`: verifica impostazioni e immagine, senza una finestra grafica.
+- `linuxdrift --print-config`: stampa la configurazione effettiva.
+- `linuxdrift --backend x11` / `--backend wayland`: forza il backend per diagnostica.
+- `linuxdrift --duration 10`: termina dopo dieci secondi di rendering.
+
+Le impostazioni vengono lette a ogni avvio da `$XDG_CONFIG_HOME/linuxdrift/config.json`,
+o da `~/.config/linuxdrift/config.json` quando XDG_CONFIG_HOME non è assoluto o non è impostato.
+In assenza del file si usano i valori originali. I salvataggi sono atomici, con permessi utente;
+JSON non valido, opzioni sconosciute e valori fuori intervallo vengono segnalati senza sovrascrivere il file.
+Le immagini personali devono avere un percorso assoluto e restare disponibili sul disco.
+
+## X11 e Wayland
+
+Il programma usa finestre native tramite winit: seleziona Wayland nelle sessioni Wayland
+anche quando è disponibile XWayland; seleziona X11 nelle sessioni X11. In assenza di un tipo
+sessione dichiarato dà precedenza a WAYLAND_DISPLAY, poi a DISPLAY. Il rendering usa wgpu/Vulkan.
+
+Questa versione apre una finestra fullscreen su un monitor scelto dal compositor/window manager.
+Non è un blocco schermo e non implementa il protocollo session-lock. L'avvio automatico dopo
+inattività va configurato nel proprio desktop o idle manager: non esiste un protocollo idle
+universale supportato da tutti i compositor Wayland. Per esempio, con `swayidle` già installato:
 
 ```sh
-nix develop
-
-cd web
-pnpm serve
+swayidle -w timeout 300 'linuxdrift'
 ```
 
-### Manual build
+### Integrazione XScreenSaver
 
-There’s a few things you’re going to have to install.
-
-- rustc with `wasm32-unknown-unknown` as a target
-- cargo
-- wasm-pack
-- node
-- pnpm
-- elm
-
-How you get these dependencies depends on the operating system you’re running. Here’s an example for macOS and Linux using rustup:
+Il `.deb` installa il modulo e la scheda di configurazione XML riconosciuta da
+`xscreensaver-demo` / `xscreensaver-settings`. L'installazione tramite `sudo apt`
+registra LinuxDrift nella lista dell'utente che installa; per gli altri utenti la
+registrazione avviene al login. Per registrarlo subito nella sessione corrente:
 
 ```sh
-rustup toolchain install stable
-rustup target wasm32-unknown-unknown
-
-cd web
-pnpm install
+linuxdrift-register-xscreensaver
+xscreensaver-demo
 ```
 
-Run a development server from the `web` folder:
+Cercare **LinuxDrift**, selezionarlo e aprire **Impostazioni**.
+L'anteprima viene disegnata nella finestra del gestore; il daemon gestisce ogni
+monitor, l'inattività e l'eventuale blocco. LinuxDrift accetta `--root`, `-root`,
+`--window-id`, `-window-id` e la variabile `XSCREENSAVER_WINDOW`.
+L'incorporamento forza X11 anche se il gestore viene aperto tramite XWayland.
+XScreenSaver gestisce il blocco su X11; su Wayland usare il gestore nativo del desktop.
+
+La registrazione aggiunge una sola voce in `~/.xscreensaver`, mantiene l'ordine e
+la selezione esistenti e crea una copia `.xscreensaver.before-linuxdrift`. Non attiva
+né sostituisce il daemon e non cambia le preferenze di blocco. Dopo la disinstallazione
+la voce può essere rimossa dall'elenco del gestore (i file personali vengono conservati).
+
+Le opzioni di XScreenSaver sono salvate da quel gestore in `~/.xscreensaver` e prevalgono
+sulle opzioni equivalenti del file LinuxDrift. **Impostazioni LinuxDrift** / `--config`
+offre tutte le opzioni, comprese immagini personali e canali rumore. Sono disponibili
+anche gli override `--palette plasma` e `--set lineLength=300` per singolo avvio.
+
+## Compilazione e pacchetto
+
+Installare una versione Rust stable compatibile con il lockfile (verificata con Rust 1.99) e:
+
 ```sh
-pnpm serve
+sudo apt install build-essential pkg-config libwayland-dev libxkbcommon-dev \
+  libx11-dev libxrandr-dev libxi-dev libxcursor-dev dpkg-dev \
+  python3-gi gir1.2-gtk-4.0 libvulkan1 mesa-vulkan-drivers
+cargo build --locked --release -p linuxdrift
+cargo test --locked -p linuxdrift -p flux
+./scripts/build-deb.sh --no-build
 ```
 
-Build a release:
-```sh
-pnpm build
-```
+Il pacchetto viene prodotto in `dist/` con checksum SHA-256; le versioni minime delle librerie
+sono ricavate dal sistema di compilazione. Per distribuzioni precedenti, compilare su quella
+distribuzione invece di forzare l'installazione di un pacchetto con dipendenze incompatibili.
+La prima compilazione scarica i crate Rust; l'applicazione installata non usa la rete.
 
-## License
+## Origine e licenza
 
-[MIT][license-url] © [Sander Melnikov][maintainer-url].
+Basato sulla cronologia di sandydoo/flux, revisione `8836d0a` (Flux 7.2.1).
+LinuxDrift è un fork pubblico di sandydoo/flux e conserva la cronologia upstream.
+Lo sviluppo specifico Linux e i pacchetti installabili si trovano nel repository
+[spacecdr/LinuxDrift](https://github.com/spacecdr/LinuxDrift).
 
-
-[license-url]: https://github.com/sandydoo/flux/blob/main/LICENSE
-[maintainer-url]: https://github.com/sandydoo/
-[x]: https://x.com/sandydoo/
-[store]: https://sandydoo.gumroad.com/l/flux
+Licenza MIT; copyright originale di Sander Melnikov conservato in [LICENSE](LICENSE).
+I componenti web, WebAssembly e le vecchie applicazioni desktop upstream restano nei sorgenti
+per tracciabilità, ma non sono inclusi né eseguiti nel pacchetto LinuxDrift.
