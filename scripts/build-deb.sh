@@ -53,5 +53,5 @@ Description: Linux Drift/Deriva screensaver for X11, Wayland and XScreenSaver
 CONTROL
 out="dist/linuxdrift_${version}_${arch}.deb"
 dpkg-deb --root-owner-group --build "$stage" "$out"
-sha256sum "$out" > "$out.sha256"
+(cd dist && sha256sum "linuxdrift_${version}_${arch}.deb") > "$out.sha256"
 printf 'Created %s\n' "$out"
