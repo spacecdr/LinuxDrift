@@ -15,7 +15,9 @@ install -Dm644 packaging/linuxdrift-config.desktop "$stage/usr/share/application
 install -Dm644 packaging/linuxdrift.svg "$stage/usr/share/icons/hicolor/scalable/apps/linuxdrift.svg"
 install -Dm644 LICENSE "$stage/usr/share/doc/linuxdrift/copyright"
 install -Dm644 README.md "$stage/usr/share/doc/linuxdrift/README.md"
-install -Dm644 docs/linuxdrift.png "$stage/usr/share/doc/linuxdrift/docs/linuxdrift.png"
+for asset in docs/assets/*; do
+    install -Dm644 "$asset" "$stage/usr/share/doc/linuxdrift/$asset"
+done
 install -Dm644 packaging/linuxdrift.xml "$stage/usr/share/xscreensaver/config/linuxdrift.xml"
 install -Dm755 packaging/register-xscreensaver.py "$stage/usr/bin/linuxdrift-register-xscreensaver"
 install -Dm644 packaging/linuxdrift-xscreensaver.desktop "$stage/etc/xdg/autostart/linuxdrift-xscreensaver.desktop"

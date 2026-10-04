@@ -1,4 +1,15 @@
-# LinuxDrift
+<p align="center"><img src="docs/assets/icon.svg" width="72" alt="LinuxDrift"></p>
+<h1 align="center">LinuxDrift</h1>
+<p align="center"><strong>Drift / Deriva, ora su Linux.</strong><br>Un salvaschermo nativo. Dieci palette. Nessuna distrazione.</p>
+<p align="center">
+  <a href="https://spacecdr.github.io/LinuxDrift/"><strong>Visita il sito</strong></a> ·
+  <a href="https://github.com/spacecdr/LinuxDrift/releases/latest"><strong>Scarica il .deb</strong></a> ·
+  <a href="#installazione-deb">Installazione</a> ·
+  <a href="https://github.com/spacecdr/LinuxDrift/issues">Segnala un problema</a>
+</p>
+<p align="center"><strong>X11 · Wayland · XScreenSaver · Offline · MIT</strong></p>
+
+<p align="center"><a href="https://spacecdr.github.io/LinuxDrift/"><img src="docs/assets/original.webp" width="100%" alt="LinuxDrift in esecuzione: palette Original, linee multicolore su sfondo nero"></a></p>
 
 **Versione Linux ispirata al salvaschermo Drift / Deriva di macOS**, pronta da installare come salvaschermo.
 Basata su [Flux di Sander Melnikov](https://github.com/sandydoo/flux).
@@ -6,7 +17,13 @@ Non è un port ufficiale Apple. Mostra solo l'animazione, senza slogan, controll
 Funziona **interamente offline**: nessun browser, server web, account o download a runtime.
 Le dieci palette originali e l'interfaccia di configurazione sono incorporate nel binario.
 
-![LinuxDrift in esecuzione, palette Plasma](docs/linuxdrift.png)
+<table>
+<tr><td><img src="docs/assets/poolside.webp" alt="Palette Poolside, linee azzurre"></td><td><img src="docs/assets/plasma.webp" alt="Palette Plasma, linee arancioni e dorate"></td></tr>
+<tr><td align="center"><strong>Poolside</strong> · Toni freddi</td><td align="center"><strong>Plasma</strong> · Toni caldi</td></tr>
+</table>
+
+Le anteprime sono catture reali di LinuxDrift. [Guarda la pagina del progetto →](https://spacecdr.github.io/LinuxDrift/)
+
 
 ## Requisiti di sistema
 
@@ -108,7 +125,7 @@ Installare una versione Rust stable compatibile con il lockfile (verificata con 
 
 ```sh
 sudo apt install build-essential pkg-config libwayland-dev libxkbcommon-dev \
-  libx11-dev libxrandr-dev libxi-dev libxcursor-dev dpkg-dev \
+  libx11-dev libxrandr-dev libxi-dev libxcursor-dev libxkbcommon-x11-0 dpkg-dev \
   python3-gi gir1.2-gtk-4.0 libvulkan1 mesa-vulkan-drivers
 cargo build --locked --release -p linuxdrift
 cargo test --locked -p linuxdrift -p flux

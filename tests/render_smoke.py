@@ -18,7 +18,7 @@ def run(env, args, name):
 
 with tempfile.TemporaryDirectory(prefix='linuxdrift-test-') as directory:
     os.chmod(directory, 0o700)
-    env = dict(os.environ, XDG_RUNTIME_DIR=directory, XDG_CONFIG_HOME=directory, RUST_LOG='linuxdrift=info', GSK_RENDERER='cairo', WGPU_BACKEND='vulkan', VK_ICD_FILENAMES='/usr/share/vulkan/icd.d/lvp_icd.json')
+    env = dict(os.environ, XDG_RUNTIME_DIR=directory, XDG_CONFIG_HOME=directory, RUST_LOG='linuxdrift=info', GSK_RENDERER='cairo', WGPU_BACKEND='vulkan', VK_ICD_FILENAMES=str(next(Path('/usr/share/vulkan/icd.d').glob('lvp_icd*.json'))))
     xvfb = subprocess.Popen(['Xvfb', '-displayfd', '1', '-screen', '0', '1280x800x24'], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
     env['DISPLAY'] = ':' + xvfb.stdout.readline().strip()
     env['XDG_SESSION_TYPE'] = 'x11'
