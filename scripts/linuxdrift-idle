@@ -1,0 +1,104 @@
+#!/usr/bin/python3
+"""Run LinuxDrift after inactivity on GNOME, using Mutter's session idle counter."""
+import argparse
+import fcntl
+import os
+from pathlib import Path
+import signal
+import subprocess
+import sys
+import time
+from gi.repository import Gio, GLib
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--minutes', type=float, default=5, help='Idle delay in minutes (default: 5)')
+    parser.add_argument('--check', action='store_true', help='Check GNOME services without starting the saver')
+    args = parser.parse_args()
+    if not 0 < args.minutes <= 1440:
+        parser.error('--minutes must be between 0 and 1440')
+    bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+
+    def call(destination, path, interface, method):
+        return bus.call_sync(destination, path, interface, method, None, None,
+                             Gio.DBusCallFlags.NONE, 2000, None).unpack()[0]
+
+    def idle_time():
+        return call('org.gnome.Mutter.IdleMonitor', '/org/gnome/Mutter/IdleMonitor/Core',
+                    'org.gnome.Mutter.IdleMonitor', 'GetIdletime')
+
+    def locked():
+        return call('org.gnome.ScreenSaver', '/org/gnome/ScreenSaver',
+                    'org.gnome.ScreenSaver', 'GetActive')
+
+    def inhibited():
+        # Honour GNOME applications asking to inhibit idle (e.g. video playback).
+        return bus.call_sync('org.gnome.SessionManager', '/org/gnome/SessionManager',
+                             'org.gnome.SessionManager', 'IsInhibited', GLib.Variant('(u)', (8,)),
+                             None, Gio.DBusCallFlags.NONE, 2000, None).unpack()[0]
+
+    initial = idle_time()
+    lock_state = locked()
+    inhibited()
+    if args.check:
+        print(f'GNOME idle monitor available; idle={initial} ms; locked={lock_state}; timeout={args.minutes:g} minutes')
+        return
+    runtime = os.environ.get('XDG_RUNTIME_DIR')
+    if not runtime:
+        raise RuntimeError('XDG_RUNTIME_DIR is not set; run this inside your graphical session')
+    lock_file = open(Path(runtime) / 'linuxdrift-idle.lock', 'w')
+    try:
+        fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        raise RuntimeError('An idle monitor is already running')
+    stopped = False
+    child = None
+    armed = True
+
+    def stop(*_):
+        nonlocal stopped
+        stopped = True
+    signal.signal(signal.SIGTERM, stop)
+    signal.signal(signal.SIGINT, stop)
+
+    def stop_child():
+        nonlocal child
+        if child is not None:
+            if child.poll() is None:
+                child.terminate()
+                try:
+                    child.wait(timeout=3)
+                except subprocess.TimeoutExpired:
+                    child.kill()
+                    child.wait()
+            child = None
+
+    threshold = args.minutes * 60_000
+    print(f'LinuxDrift will start after {args.minutes:g} minutes of inactivity. Ctrl+C stops this monitor.', flush=True)
+    try:
+        while not stopped:
+            idle = idle_time()
+            if idle < threshold:
+                armed = True
+                # Global input closes our own saver even if another window has focus.
+                stop_child()
+            elif locked() or inhibited():
+                stop_child()
+            elif armed and child is None:
+                child = subprocess.Popen(['/usr/bin/linuxdrift'])
+                armed = False
+            if child is not None and child.poll() is not None:
+                child = None
+            time.sleep(1)
+    finally:
+        stop_child()
+        lock_file.close()
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except (GLib.Error, OSError, RuntimeError) as error:
+        print(f'LinuxDrift idle: {error}', file=sys.stderr)
+        sys.exit(1)

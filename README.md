@@ -144,6 +144,33 @@ universale supportato da tutti i compositor Wayland. Per esempio, con `swayidle`
 swayidle -w timeout 300 'linuxdrift'
 ```
 
+### Avvio dopo inattività su GNOME
+
+Lo script [scripts/linuxdrift-idle](scripts/linuxdrift-idle) avvia LinuxDrift dopo
+un intervallo di inattività su GNOME, anche in una sessione Wayland. Richiede
+LinuxDrift installato in `/usr/bin/linuxdrift`, Python 3 e PyGObject (`python3-gi`),
+e usa i servizi D-Bus della sessione GNOME/Mutter. Non è un gestore idle universale
+per tutti i desktop Wayland.
+
+Dalla cartella del repository:
+
+```sh
+install -Dm755 scripts/linuxdrift-idle ~/.local/bin/linuxdrift-idle
+~/.local/bin/linuxdrift-idle --check
+~/.local/bin/linuxdrift-idle --minutes 5
+```
+
+`--check` verifica i servizi senza avviare il salvaschermo. L’intervallo predefinito
+è cinque minuti. Lo script rispetta il blocco schermo e le richieste GNOME di
+inibizione dell’inattività; al ritorno dell’attività chiude il salvaschermo che ha
+avviato. Non sostituisce il blocco schermo e non modifica le impostazioni del desktop.
+Ctrl+C ferma il monitor e il suo salvaschermo; può essere attiva una sola istanza.
+
+Per avviarlo al login, aggiungi nelle **Applicazioni d’avvio** di GNOME il comando
+con il percorso assoluto della tua home, per esempio
+`/home/NOMEUTENTE/.local/bin/linuxdrift-idle --minutes 5`.
+Lo script è fornito nel repository; non viene installato o attivato automaticamente dal `.deb`.
+
 ### Integrazione XScreenSaver
 
 Il `.deb` installa il modulo e la scheda di configurazione XML riconosciuta da
